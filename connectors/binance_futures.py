@@ -92,7 +92,8 @@ class BinanceFuturesClient:
 
         if exchange_info is not None:
             for contract_data in exchange_info['symbols']:
-                contracts[contract_data['pair']] = Contract(contract_data)
+                contracts[contract_data['pair']] = Contract(
+                    contract_data, "binance")
 
         return contracts
 
@@ -108,7 +109,7 @@ class BinanceFuturesClient:
 
         if raw_candles is not None:
             for c in raw_candles:
-                candles.append(Candle(c))
+                candles.append(Candle(c, "binance"))
 
         return candles
 
@@ -140,7 +141,7 @@ class BinanceFuturesClient:
 
         if account_data is not None:
             for a in account_data['assets']:
-                balances[a['asset']] = Balance(a)
+                balances[a['asset']] = Balance(a, "binance")
 
         return balances
 
@@ -148,11 +149,13 @@ class BinanceFuturesClient:
         data = dict()
         data['symbol'] = contract.symbol
         data['side'] = side
-        data['quantity'] = quantity
+        data['quantity'] = round(
+            quantity / contract.lot_size) * contract.lot_size
         data['type'] = order_type
 
         if price is not None:
-            data['price'] = price
+            data['price'] = round(round(
+                price / contract.tick_size) * contract.tick_size, 8)
 
         if tif is not None:
             data['timeInForce'] = tif
@@ -163,7 +166,7 @@ class BinanceFuturesClient:
         order_status = self._make_request("POST", "/fapi/v1/order", data)
 
         if order_status is not None:
-            order_status = OrderStatus(order_status)
+            order_status = OrderStatus(order_status, "binance ")
 
         return order_status
 
@@ -179,7 +182,7 @@ class BinanceFuturesClient:
         order_status = self._make_request("DELETE", "/fapi/v1/order", data)
 
         if order_status is not None:
-            order_status = OrderStatus(order_status)
+            order_status = OrderStatus(order_status, "binance ")
 
         return order_status
 
@@ -194,7 +197,7 @@ class BinanceFuturesClient:
         order_status = self._make_request("GET", "/fapi/v1/order", data)
 
         if order_status is not None:
-            order_status = OrderStatus(order_status)
+            order_status = OrderStatus(order_status, "binance ")
 
         return order_status
 
@@ -209,15 +212,14 @@ class BinanceFuturesClient:
                 logger.error("Binance error in run_forever() method: %s", e)
             time.sleep(2)
 
-        return
-
     def _on_open(self, ws):
         logger.info("Binance Websocket connection opened")
 
-        self.subscribe_channel(list(self.contracts.values), "bookTicker")
+        self.subscribe_channel(list(self.contracts.values()), "bookTicker")
 
-    def _on_close(self, ws):
-        logger.warning("Binance Websocket connection closed")
+    def _on_close(self, ws, close_status_code, close_msg):
+        logger.warning("Binance Websocket connection closed",
+                       close_status_code, close_msg)
 
     def _on_error(self, ws, msg: str):
         logger.error("Binance connection error: %s", msg)

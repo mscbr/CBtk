@@ -2,6 +2,9 @@ import tkinter as tk
 import logging
 
 from connectors.binance_futures import BinanceFuturesClient
+from connectors.bitmex_futures import BitmexFuturesClient
+
+from decouple import config
 
 logger = logging.getLogger()
 
@@ -22,8 +25,11 @@ logger.addHandler(file_handler)
 
 if __name__ == '__main__':
 
-    binance = BinanceFuturesClient(True, "",
-                                   "")
+    binance = BinanceFuturesClient(True, config("APIKEY_PUBLIC_BINANCE_TESTNET"),
+                                   config("APIKEY_PRIVATE_BINANCE_TESTNET"))
+    bitmex = BitmexFuturesClient(
+        True, config("APIKEY_PUBLIC_BITMEX_TESTNET"),
+        config("APIKEY_PRIVATE_BITMEX_TESTNET"))
 
     root = tk.Tk()
     root.mainloop()
