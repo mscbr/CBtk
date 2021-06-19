@@ -1,4 +1,5 @@
 import tkinter as tk
+from interface.root_component import Root
 import logging
 
 from connectors.binance_futures import BinanceFuturesClient
@@ -31,5 +32,5 @@ if __name__ == '__main__':
         True, config("APIKEY_PUBLIC_BITMEX_TESTNET"),
         config("APIKEY_PRIVATE_BITMEX_TESTNET"))
 
-    root = tk.Tk()
+    root = Root()
     root.mainloop()
