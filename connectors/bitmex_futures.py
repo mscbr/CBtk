@@ -38,10 +38,16 @@ class BitmexFuturesClient:
 
         self.prices = dict()
 
+        self.logs = []
+
         t = threading.Thread(target=self._start_ws)
         t.start()
 
         logger.info("BITMEX Futures Client successfully initialized")
+
+    def _add_log(self, msg):
+        logger.info("%s", msg)
+        self.logs.append({"log": msg, "displayed": False})
 
     def _generate_signature(self, method: str, endpoint: str, data: str, expires: str) -> str:
         message = method + endpoint + \
@@ -228,6 +234,10 @@ class BitmexFuturesClient:
                         self.prices[symbol]['bid'] = d['bidPrice']
                     if 'askPrice' in d:
                         self.prices[symbol]['ask'] = d['askPrice']
+
+                    if symbol == "XBTUSD":
+                        self._add_log(
+                            symbol + " " + str(self.prices[symbol]['bid']) + " / " + str(self.prices[symbol]['ask']))
 
     def subscribe_channel(self, topic: str):
         data = dict()

@@ -32,5 +32,5 @@ if __name__ == '__main__':
         True, config("APIKEY_PUBLIC_BITMEX_TESTNET"),
         config("APIKEY_PRIVATE_BITMEX_TESTNET"))
 
-    root = Root()
+    root = Root(binance, bitmex)
     root.mainloop()
